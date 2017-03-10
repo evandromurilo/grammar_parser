@@ -1,5 +1,7 @@
 CC = gcc
-CFLAGS = -I ../m/lib -o bin/grammar_parser
+CFLAGS = -I ../m/lib 
+OUT = -o bin/grammar_parser
+
 
 PROG = grammar_parser
 OBJS = grammar_parser.o ../m/lib/m_basics.o
@@ -10,7 +12,7 @@ DEPS = ../m/lib/m_basics.h
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 $(PROG): $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS)
+	$(CC) $(OUT) $(CFLAGS) $(OBJS)
 
 run:
 	./bin/grammar_parser < conto.g

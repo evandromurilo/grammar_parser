@@ -23,7 +23,6 @@ int main(void) {
 	char line[MAX_LINE_SIZE];
 	int line_size;
 
-	printf("yo\n");
 	while (true) {
 		struct Definition *def = malloc(sizeof(struct Definition));
 
@@ -40,8 +39,17 @@ int main(void) {
 		printf("DEFINITION NAME: %s\n", line);
 
 		while (true) {
-			line_size = read_line(line, MAX_LINE_SIZE);
-			if (line_size == 0 || line[0] == '}') break;
+			discard_while(" \n\t");
+
+			char first = read_char();
+			if (first == '}') break;
+			else push_char(first);
+				
+			line_size = read_until(';', line, MAX_LINE_SIZE);
+			printf("LINE: %s\n", line);
+			read_char(); // discard ';'
+
+			if (line_size == 0) break;
 
 			struct Product *p = malloc(sizeof(struct Product));
 			p->size = split(p->names, 100, line, ' ');
@@ -58,8 +66,9 @@ int main(void) {
 		printf("DEFINITION %s\n", definitions[d].name);
 		for (int i = 0; i < definitions[d].size; ++i) {
 			for (int j = 0; j < definitions[d].products[i].size; ++j) {
-				printf("%s\n", definitions[d].products[i].names[j]);
+				printf("%s ", definitions[d].products[i].names[j]);
 			}
+			printf("\n");
 		}
 		putchar('\n');
 	}
