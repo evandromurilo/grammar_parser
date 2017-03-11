@@ -1,47 +1,24 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdbool.h>
-#include "m_basics.h"
-
-#define MAX_LINE_SIZE 100
-#define TEMP_MAX 100
-
-struct StringNode {
-	char* value;
-	struct StringNode *next;
-};
-
-struct StringList {
-	struct StringNode *first;
-	struct StringNode *last;
-};
-
-struct Product {
-	int size;
-	struct StringList *names;
-};
-
-struct Definition {
-	char* name;
-	int size;
-	struct Product products[TEMP_MAX];
-};
-
-int split_linked(struct StringList *list, int size, char* str, char goal);
-void print_linked(struct StringList *list);
-struct StringNode *append_string(struct StringList *list, char* word);
+#include "grammar_parser.h"
 
 int main(void) {
-	struct Definition definitions[TEMP_MAX];
+	struct DefinitionList definitions;
+	definitions.first = NULL;
+	definitions.last = NULL;
+
 	int size = 0;
 	char line[MAX_LINE_SIZE];
 	int line_size;
 
+	// definition level
 	while (true) {
-		struct Definition *def = malloc(sizeof(struct Definition));
+		struct DefinitionNode *def = malloc(sizeof(struct DefinitionNode));
+		def->products = malloc(sizeof(struct ProductList));
+		def->products->first = NULL;
+		def->products->last = NULL;
 
 		discard_until('{');
-		discard_line();
+		read_char();
+		discard_while(" \n\t");
 
 		line_size = read_line(line, MAX_LINE_SIZE);
 		if (line_size == 0) break;
@@ -52,6 +29,7 @@ int main(void) {
 
 		printf("DEFINITION NAME: %s\n", line);
 
+		// production level
 		while (true) {
 			discard_while(" \n\t");
 
@@ -60,31 +38,25 @@ int main(void) {
 			else push_char(first);
 				
 			line_size = read_until(';', line, MAX_LINE_SIZE);
-			printf("LINE: %s\n", line);
 			read_char(); // discard ';'
+			printf("LINE: %s\n", line);
 
 			if (line_size == 0) break;
 
-			struct Product *p = malloc(sizeof(struct Product));
+			struct ProductNode *p = malloc(sizeof(struct ProductNode));
 			p->names = malloc(sizeof(struct StringList));
 			p->size = split_linked(p->names, 100, line, ' ');
 
-			def->products[def->size++] = *p;
+			append_product(def->products, p);
 		}
 
 		if (line_size == 0) break;
 
-		definitions[size++] = *def;
+		append_definition(&definitions, def);
 	}
 
-	for (int d = 0; d < size; ++d) {
-		printf("DEFINITION %s\n", definitions[d].name);
-		for (int i = 0; i < definitions[d].size; ++i) {
-			print_linked(definitions[d].products[i].names);
-			printf("\n");
-		}
-		putchar('\n');
-	}
+	print_definitions(&definitions);
+
 	return 0;
 }
 
@@ -127,10 +99,43 @@ struct StringNode *append_string(struct StringList *list, char* word) {
 	return new;
 }
 
+struct ProductNode *append_product(struct ProductList *list, struct ProductNode* product) {
+	product->next = NULL;
+	
+	if (list->first == NULL) list->first = list->last = product;
+	else list->last = list->last->next = product;
+
+	return product;
+}
+
+struct DefinitionNode *append_definition(struct DefinitionList *list, struct DefinitionNode* definition) {
+	definition->next = NULL;
+	
+	if (list->first == NULL) list->first = list->last = definition;
+	else list->last = list->last->next = definition;
+
+	return definition;
+}
+
 void print_linked(struct StringList *list) {
 	struct StringNode *current = list->first;
 	while (current != NULL) {
 		printf("%s ", current->value);
 		current = current->next;
+	}
+}
+
+void print_definitions(struct DefinitionList *definitions) {
+	struct DefinitionNode *d = definitions->first;
+	while (d != NULL) {
+		printf("DEFINITION %s\n", d->name);
+		struct ProductNode *p = d->products->first;
+		while (p != NULL) {
+			print_linked(p->names);
+			p = p->next;
+			printf("\n");
+		}
+		putchar('\n');
+		d = d->next;
 	}
 }
