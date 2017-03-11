@@ -14,7 +14,7 @@ $(PROG): $(OBJS)
 	$(CC) $(DEBUG) $(OUT) $(CFLAGS) $(OBJS)
 
 run:
-	../bin/generate_grammar conto.g
+	../bin/generate_grammar nota.g
 
 debug: DEBUG = -DDEBUG
 debug: $(PROG)

@@ -73,7 +73,7 @@ struct DefinitionList *parse(char* filename) {
 	return definitions;
 }
 
-#define MAX_WORD_SIZE 100
+#define MAX_WORD_SIZE 1000
 int split_linked(struct StringList *list, int size, char* str, char goal) {
 	char word[MAX_WORD_SIZE+1];
 	int i, c, total = 0;

@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include "m_basics.h"
 
-#define MAX_LINE_SIZE 1000
+#define MAX_LINE_SIZE 10000
 #define TEMP_MAX 100
 
 /* a Definition is a name + a list of possible productions
