@@ -1,11 +1,11 @@
 CC = gcc
 CFLAGS = -I ../m/lib 
-OUT = -o bin/grammar_parser
+OUT = -o bin/generate_grammar
 
 
-PROG = grammar_parser
-OBJS = grammar_parser.o ../m/lib/m_basics.o
-SRCS = grammar_parser.c ../m/lib/m_basics.c
+PROG = generate_grammar
+OBJS = generate_grammar.o grammar_parser.o ../m/lib/m_basics.o
+SRCS = generate_grammar.c grammar_parser.c ../m/lib/m_basics.c
 DEPS = ../m/lib/m_basics.h grammar_parser.h
 
 %.o: %.c $(DEPS)
@@ -15,7 +15,7 @@ $(PROG): $(OBJS)
 	$(CC) $(DEBUG) $(OUT) $(CFLAGS) $(OBJS)
 
 run:
-	./bin/grammar_parser
+	./bin/generate_grammar conto.g
 
 debug: DEBUG = -DDEBUG
 debug: $(PROG)

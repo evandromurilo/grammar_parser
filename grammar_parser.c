@@ -6,71 +6,6 @@
 #define DEBUG 0
 #endif
 
-int main(void) {
-	srand(time(NULL));
-
-	struct DefinitionList *grammar = parse("conto.g");
-	struct DefinitionNode *start = get_definition(grammar, "<start>");
-
-
-	if (grammar == NULL) return EXIT_FAILURE;
-
-	/* print_definitions(grammar); */
-
-	struct StringList strs;
-	strs.first = NULL;
-	strs.last = NULL;
-
-	expand(grammar, get_random_product(start), &strs);
-	print_linked(&strs);
-	putchar('\n');
-
-	return 0;
-}
-
-void expand(struct DefinitionList *grammar, struct StringNode *product, struct StringList *strs) {
-	if (DEBUG) printf("expanding!\n");
-	for (; product != NULL; product=product->next) {
-		struct DefinitionNode *def = get_definition(grammar, product->value);
-
-		if (def == NULL) {
-			if (DEBUG) printf("appending %s\n", product->value);
-			append_string(strs, product->value);
-		}
-		else expand(grammar, get_random_product(def), strs);
-	}
-}
-
-struct DefinitionNode *get_definition(struct DefinitionList *grammar, char* name) {
-	if (DEBUG) printf("Searching for definition %s\n", name);
-	struct DefinitionNode *curr = grammar->first;
-
-	while (curr != NULL && strcmp(curr->name, name) != 0) {
-		curr = curr->next;
-	}
-
-	if (DEBUG) {
-		if (curr != NULL) printf("got it: %s\n", curr->name);
-		else printf("not found! \n");
-	}
-
-	return curr;
-}
-
-struct StringNode *get_random_product(struct DefinitionNode *def) {
-	if (DEBUG) printf("Getting random product\n");
-	int r = rand()%(def->size);
-	if (DEBUG) printf("random index is %d\n", r);
-	struct ProductNode *p = def->products->first;
-
-	for (int i = 0; i < r; ++i) p = p->next;;
-
-	if (DEBUG) print_linked(p->names), putchar('\n');
-
-	/* printf("%s\n", p->names->first->value); */
-	return p->names->first;
-}
-
 struct DefinitionList *parse(char* filename) {
 	if ((freopen(filename, "r", stdin)) == NULL) {
 		perror("Could not open file");
@@ -88,9 +23,10 @@ struct DefinitionList *parse(char* filename) {
 	// definition level
 	while (true) {
 		struct DefinitionNode *def = malloc(sizeof(struct DefinitionNode));
-		def->products = malloc(sizeof(struct ProductList));
-		def->products->first = NULL;
-		def->products->last = NULL;
+		def->productions = malloc(sizeof(struct ProductionList));
+		def->productions->first = NULL;
+		def->productions->last = NULL;
+		def->productions->size = 0;
 
 		discard_until('{');
 		read_char();
@@ -101,7 +37,6 @@ struct DefinitionList *parse(char* filename) {
 
 		def->name = malloc(line_size+1);
 		strcpy(def->name, line);
-		def->size = 0;
 
 		if (DEBUG) printf("DEFINITION NAME: %s\n", line);
 
@@ -118,20 +53,23 @@ struct DefinitionList *parse(char* filename) {
 			if (DEBUG) printf("LINE: %s\n", line);
 			if (line_size == 0) break;
 
-			struct ProductNode *p = malloc(sizeof(struct ProductNode));
+			struct ProductionNode *p = malloc(sizeof(struct ProductionNode));
 			p->names = malloc(sizeof(struct StringList));
-			p->size = split_linked(p->names, 100, line, ' ');
+			p->names->size = 0;
+			p->names->first = NULL;
+			p->names->last = NULL;
 
-			append_product(def->products, p);
-			(def->size)++;
+			split_linked(p->names, 100, line, ' ');
+			append_production(def->productions, p);
 		}
 
 		if (line_size == 0) break;
+		if (DEBUG) putchar('\n');
 
 		append_definition(definitions, def);
 	}
 
-	if (DEBUG) printf("end of parse\n");
+	if (DEBUG) printf("END OF PARSE\n\n");
 	return definitions;
 }
 
@@ -155,11 +93,63 @@ int split_linked(struct StringList *list, int size, char* str, char goal) {
 		strcpy(nword, word);
 
 		append_string(list, nword);
-		if (DEBUG) printf("Read word: %s\n", list->last->value);
+		if (DEBUG) printf("WORD: %s\n", list->last->value);
 		++total;
 	}
 
 	return total;
+}
+
+void expand(struct DefinitionList *grammar, struct StringNode *production, struct StringList *strs) {
+	if (DEBUG) printf("Expanding!\n");
+	for (; production != NULL; production=production->next) {
+		struct DefinitionNode *def;
+
+		if (production->value[0] != '<') def = NULL;
+		else def = get_definition(grammar, production->value);
+
+		if (def == NULL) {
+			if (DEBUG) printf("appending %s\n", production->value);
+			append_string(strs, production->value);
+		}
+		else expand(grammar, get_random_production(def), strs);
+	}
+}
+
+struct DefinitionNode *get_definition(struct DefinitionList *grammar, char* name) {
+	if (DEBUG) printf("Searching for definition %s\n", name);
+	struct DefinitionNode *curr = grammar->first;
+
+	while (curr != NULL && strcmp(curr->name, name) != 0) {
+		curr = curr->next;
+	}
+
+	if (DEBUG) {
+		if (curr != NULL) printf("got it: %s\n", curr->name);
+		else printf("not found! \n");
+	}
+
+	return curr;
+}
+
+struct StringNode *get_random_production(struct DefinitionNode *def) {
+	static bool seeded = false;
+
+	if (!seeded) {
+		srand(time(NULL));
+		seeded = true;
+	}
+
+	if (DEBUG) printf("Getting random production\n");
+	int r = rand()%(def->productions->size);
+	if (DEBUG) printf("random index is %d\n", r);
+	struct ProductionNode *p = def->productions->first;
+
+	for (int i = 0; i < r; ++i) p = p->next;
+
+	if (DEBUG) print_linked(p->names), putchar('\n');
+
+	return p->names->first;
 }
 
 struct StringNode *append_string(struct StringList *list, char* word) {
@@ -171,16 +161,20 @@ struct StringNode *append_string(struct StringList *list, char* word) {
 	if (list->first == NULL) list->first = list->last = new;
 	else list->last = list->last->next = new;
 
+	(list->size)++;
+
 	return new;
 }
 
-struct ProductNode *append_product(struct ProductList *list, struct ProductNode* product) {
-	product->next = NULL;
+struct ProductionNode *append_production(struct ProductionList *list, struct ProductionNode* production) {
+	production->next = NULL;
 	
-	if (list->first == NULL) list->first = list->last = product;
-	else list->last = list->last->next = product;
+	if (list->first == NULL) list->first = list->last = production;
+	else list->last = list->last->next = production;
 
-	return product;
+	(list->size)++;
+
+	return production;
 }
 
 struct DefinitionNode *append_definition(struct DefinitionList *list, struct DefinitionNode* definition) {
@@ -188,6 +182,8 @@ struct DefinitionNode *append_definition(struct DefinitionList *list, struct Def
 	
 	if (list->first == NULL) list->first = list->last = definition;
 	else list->last = list->last->next = definition;
+
+	(list->size)++;
 
 	return definition;
 }
@@ -204,7 +200,7 @@ void print_definitions(struct DefinitionList *definitions) {
 	struct DefinitionNode *d = definitions->first;
 	while (d != NULL) {
 		printf("DEFINITION %s\n", d->name);
-		struct ProductNode *p = d->products->first;
+		struct ProductionNode *p = d->productions->first;
 		while (p != NULL) {
 			print_linked(p->names);
 			p = p->next;
