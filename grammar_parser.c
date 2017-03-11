@@ -1,9 +1,22 @@
 #include "grammar_parser.h"
 
+#ifdef DEBUG
+#define DEBUG 1
+#else
+#define DEBUG 0
+#endif
+
 int main(void) {
-	struct DefinitionList definitions;
-	definitions.first = NULL;
-	definitions.last = NULL;
+	struct DefinitionList *grammar = parse();
+	print_definitions(grammar);
+
+	return 0;
+}
+
+struct DefinitionList *parse() {
+	struct DefinitionList *definitions = malloc(sizeof(struct DefinitionList));
+	definitions->first = NULL;
+	definitions->last = NULL;
 
 	int size = 0;
 	char line[MAX_LINE_SIZE];
@@ -27,7 +40,7 @@ int main(void) {
 		strcpy(def->name, line);
 		def->size = 0;
 
-		printf("DEFINITION NAME: %s\n", line);
+		if (DEBUG) printf("DEFINITION NAME: %s\n", line);
 
 		// production level
 		while (true) {
@@ -39,8 +52,7 @@ int main(void) {
 				
 			line_size = read_until(';', line, MAX_LINE_SIZE);
 			read_char(); // discard ';'
-			printf("LINE: %s\n", line);
-
+			if (DEBUG) printf("LINE: %s\n", line);
 			if (line_size == 0) break;
 
 			struct ProductNode *p = malloc(sizeof(struct ProductNode));
@@ -52,12 +64,10 @@ int main(void) {
 
 		if (line_size == 0) break;
 
-		append_definition(&definitions, def);
+		append_definition(definitions, def);
 	}
 
-	print_definitions(&definitions);
-
-	return 0;
+	return definitions;
 }
 
 #define MAX_WORD_SIZE 100
@@ -80,7 +90,7 @@ int split_linked(struct StringList *list, int size, char* str, char goal) {
 		strcpy(nword, word);
 
 		append_string(list, nword);
-		printf("Read word: %s\n", list->last->value);
+		if (DEBUG) printf("Read word: %s\n", list->last->value);
 		++total;
 	}
 

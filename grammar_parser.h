@@ -42,6 +42,7 @@ struct DefinitionList {
 	struct DefinitionNode *last;
 };
 
+struct DefinitionList *parse();
 int split_linked(struct StringList *list, int size, char* str, char goal);
 void print_definitions(struct DefinitionList *definitions);
 void print_linked(struct StringList *list);
