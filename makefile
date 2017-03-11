@@ -15,7 +15,7 @@ $(PROG): $(OBJS)
 	$(CC) $(DEBUG) $(OUT) $(CFLAGS) $(OBJS)
 
 run:
-	./bin/grammar_parser < conto.g
+	./bin/grammar_parser
 
 debug: DEBUG = -DDEBUG
 debug: $(PROG)

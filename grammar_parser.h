@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include <time.h>
+#include <stdlib.h>
 #include "m_basics.h"
 
 #define MAX_LINE_SIZE 100
@@ -42,6 +44,9 @@ struct DefinitionList {
 	struct DefinitionNode *last;
 };
 
+struct StringNode *get_random_product(struct DefinitionNode *def);
+struct DefinitionNode *get_definition(struct DefinitionList *grammar, char* name);
+void expand(struct DefinitionList *grammar, struct StringNode *product, struct StringList *strs);
 struct DefinitionList *parse();
 int split_linked(struct StringList *list, int size, char* str, char goal);
 void print_definitions(struct DefinitionList *definitions);
@@ -49,5 +54,6 @@ void print_linked(struct StringList *list);
 struct StringNode *append_string(struct StringList *list, char* word);
 struct ProductNode *append_product(struct ProductList *list, struct ProductNode* product);
 struct DefinitionNode *append_definition(struct DefinitionList *list, struct DefinitionNode *definition);
+
 
 #endif

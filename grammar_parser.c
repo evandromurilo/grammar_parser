@@ -7,13 +7,76 @@
 #endif
 
 int main(void) {
-	struct DefinitionList *grammar = parse();
-	print_definitions(grammar);
+	srand(time(NULL));
+
+	struct DefinitionList *grammar = parse("conto.g");
+	struct DefinitionNode *start = get_definition(grammar, "<start>");
+
+
+	if (grammar == NULL) return EXIT_FAILURE;
+
+	/* print_definitions(grammar); */
+
+	struct StringList strs;
+	strs.first = NULL;
+	strs.last = NULL;
+
+	expand(grammar, get_random_product(start), &strs);
+	print_linked(&strs);
+	putchar('\n');
 
 	return 0;
 }
 
-struct DefinitionList *parse() {
+void expand(struct DefinitionList *grammar, struct StringNode *product, struct StringList *strs) {
+	if (DEBUG) printf("expanding!\n");
+	for (; product != NULL; product=product->next) {
+		struct DefinitionNode *def = get_definition(grammar, product->value);
+
+		if (def == NULL) {
+			if (DEBUG) printf("appending %s\n", product->value);
+			append_string(strs, product->value);
+		}
+		else expand(grammar, get_random_product(def), strs);
+	}
+}
+
+struct DefinitionNode *get_definition(struct DefinitionList *grammar, char* name) {
+	if (DEBUG) printf("Searching for definition %s\n", name);
+	struct DefinitionNode *curr = grammar->first;
+
+	while (curr != NULL && strcmp(curr->name, name) != 0) {
+		curr = curr->next;
+	}
+
+	if (DEBUG) {
+		if (curr != NULL) printf("got it: %s\n", curr->name);
+		else printf("not found! \n");
+	}
+
+	return curr;
+}
+
+struct StringNode *get_random_product(struct DefinitionNode *def) {
+	if (DEBUG) printf("Getting random product\n");
+	int r = rand()%(def->size);
+	if (DEBUG) printf("random index is %d\n", r);
+	struct ProductNode *p = def->products->first;
+
+	for (int i = 0; i < r; ++i) p = p->next;;
+
+	if (DEBUG) print_linked(p->names), putchar('\n');
+
+	/* printf("%s\n", p->names->first->value); */
+	return p->names->first;
+}
+
+struct DefinitionList *parse(char* filename) {
+	if ((freopen(filename, "r", stdin)) == NULL) {
+		perror("Could not open file");
+		return NULL;
+	}
+
 	struct DefinitionList *definitions = malloc(sizeof(struct DefinitionList));
 	definitions->first = NULL;
 	definitions->last = NULL;
@@ -60,6 +123,7 @@ struct DefinitionList *parse() {
 			p->size = split_linked(p->names, 100, line, ' ');
 
 			append_product(def->products, p);
+			(def->size)++;
 		}
 
 		if (line_size == 0) break;
@@ -67,6 +131,7 @@ struct DefinitionList *parse() {
 		append_definition(definitions, def);
 	}
 
+	if (DEBUG) printf("end of parse\n");
 	return definitions;
 }
 
