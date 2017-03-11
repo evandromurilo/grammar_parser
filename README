@@ -3,5 +3,5 @@ CONTEXT-FREE GRAMMAR PARSER
 Author: Evandro Murilo
 
 Description: A context-free grammar parser and generator made in C (mostly for learning purposes). 
-Once compiled, './bin/grammar_generator filename' prints a valid expansion of the grammar stored in 'filename'.
+Once compiled, './bin/generate_grammar filename' prints a valid expansion of the grammar stored in 'filename'.
 
