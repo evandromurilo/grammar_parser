@@ -62,7 +62,7 @@ Inspiração: see.stanford.edu/materials/icsppcs107/04-Assignment-1-RSG.pdf
 	Isso não pode acontecer. ;
 	Você não é mais criança para deixar isso acontecer. ;
 	Não é um problema, mas não gosto disso. ;
-	Eu não disse explicitamente que isso não podia acontecer, mas é esperado que vocês tenham bom-senso. ;
+	Eu não disse explicitamente que isso não podia acontecer, mas é esperado que vocês tenham bom senso. ;
 	Isso é inaceitável. ;
 	Um problema pequeno mas que atrapalha. ;
 	Isso é bem ruim. ;
@@ -166,8 +166,8 @@ Inspiração: see.stanford.edu/materials/icsppcs107/04-Assignment-1-RSG.pdf
 <nota>
 	35 ;
 	45 ;
-  60 ;
-  70 ;
-  50 ;
-  20 ;
+	60 ;
+	70 ;
+	50 ;
+	20 ;
 }
